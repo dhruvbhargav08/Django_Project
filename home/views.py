@@ -12,9 +12,9 @@ class Add_User(APIView):
         name = request.data.get('name')
         password = request.data.get('password')
         role = request.data.get('role')
-        if not email or not password or not name:
+        if not email or not password or not name or not role:
             response={
-                "message": "Missing Input"
+                "message": "missing Input"
             }
             return Response(response,status.HTTP_400_BAD_REQUEST)
         enc_pass = pbkdf2_sha256.encrypt(password, rounds = 12000, salt_size = 32)
@@ -35,7 +35,7 @@ class Add_User(APIView):
                 standard=standard
             )
         user_instance.save()
-        response = {"message": "User created successfully"}
+        response = {"message": "user created successfully"}
         return Response(response, status=status.HTTP_201_CREATED)
 
 class Get_All_Student(APIView):
@@ -77,7 +77,7 @@ class Update_Student(APIView):
         standard = request.data.get('standard')
         if not email or not name:
             response={
-                "message": "Missing Input"
+                "message": "missing Input"
             }
             return Response(response,status.HTTP_400_BAD_REQUEST)
         student = Student.objects.filter(email=email).first()
@@ -109,7 +109,7 @@ class Update_Teacher(APIView):
         subject = request.data.get('subject')
         if not email or not name:
             response={
-                "message": "Missing Input"
+                "message": "missing Input"
             }
             return Response(response,status.HTTP_400_BAD_REQUEST)
         teacher = Teacher.objects.filter(email=email).first()
@@ -139,7 +139,7 @@ class Delete_Teacher(APIView):
         email = request.data.get('email')
         if not email:
             response={
-                "message": "Missing Input"
+                "message": "missing Input"
             }
             return Response(response,status.HTTP_400_BAD_REQUEST)
         teacher = Teacher.objects.filter(email=email).first()
@@ -166,7 +166,7 @@ class Delete_Student(APIView):
         email = request.data.get('email')
         if not email:
             response={
-                "message": "Missing Input"
+                "message": "missing Input"
             }
             return Response(response,status.HTTP_400_BAD_REQUEST)
         student = Student.objects.filter(email=email).first()
@@ -190,12 +190,27 @@ class Delete_Student(APIView):
     
 class Assign_Student_Teacher(APIView):
     def post(self,request):
-        student = request.data.get('student')
-        teacher = request.data.get('teacher')
-
-        print(student,Student.objects.filter(email=student))
-        student_email = Student.objects.filter(email=student).first().email
-        teacher_email = Teacher.objects.filter(email=teacher).first().email
-        Student_Teacher_Relation.objects.create(student_id=student_email,teacher_id=teacher_email)
-        response = {"message": "Relation created successfully"}
+        student_email = request.data.get('student')
+        teacher_email = request.data.get('teacher')
+        if not student_email or not teacher_email:
+            response = {
+                "message": "missing input"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        student = Student.objects.filter(email=student_email).first()
+        teacher = Teacher.objects.filter(email=teacher_email).first()
+        if not student:
+            response = {
+                "message": "student not found"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        if not teacher:
+            response = {
+                "message": "teacher not found"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        Student_Teacher_Relation.objects.create(student_id=student.email,teacher_id=teacher.email)
+        response = {
+            "message": "relation created successfully"
+        }
         return Response(response, status=status.HTTP_201_CREATED)
